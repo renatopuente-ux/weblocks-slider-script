@@ -48,10 +48,10 @@ pre .c{color:#8FA3D8}
    ═══════════════════════════════════════════════════════════════════ */
 .slider-wrapper{position:relative;overflow:hidden;border-radius:12px}
 .slider-list{display:flex}
-/* Con el efecto de fundido y slidesPerView:1, Swiper fija el ancho del slide
-   al 100% del contenedor. Ya no hace falta darle uno propio por CSS, como sí
-   exigía el 'auto' de la versión anterior. */
-.slider-item{position:relative;flex-shrink:0;height:300px;border-radius:12px;overflow:hidden}
+/* slidesPerView:'auto' significa que Swiper LEE el ancho del slide en vez de
+   escribirlo, así que cada slide necesita el suyo por CSS. Aquí ocupan el ancho
+   completo del carrusel, que es lo que hace que al apilarse se tapen entre sí. */
+.slider-item{position:relative;flex-shrink:0;width:100%;height:300px;border-radius:12px;overflow:hidden}
 
 .slide-image{position:absolute;inset:0;background-size:cover;background-position:center}
 .i1{background-image:linear-gradient(135deg,#151F47,#3C76F1)}
@@ -154,21 +154,32 @@ a{color:#2F5FCC}
     <code>.slider-wrapper</code> como raíz, <code>.slider-list</code> como contenedor y
     <code>.slider-item</code> como slide, más <code>.next-slide</code>, <code>.prev-slide</code>
     y <code>.pagination</code>. Si tu markup no coincide exactamente, no arranca.
+    Y como usa <code>slidesPerView: 'auto'</code>, cada slide necesita su propio ancho por CSS.
   </div>
 
   <h2>Las tarjetas se superponen, no se empujan</h2>
   <p>
-    El carrusel usa <code>effect: 'fade'</code> con <code>crossFade: true</code>: las tarjetas
-    ocupan la misma posición y se cruzan por opacidad, así que la nueva aparece encima de la
-    anterior en lugar de arrastrar toda la tira hacia un lado.
+    El carrusel usa <code>effect: 'creative'</code>: todas las tarjetas ocupan la misma posición
+    y la que sale se retira hacia la izquierda <em>por encima</em>, descubriendo la que ya estaba
+    esperando debajo. Como una carta que se saca de un mazo. La tira ya no se desplaza en bloque.
   </p>
 
   <div class="note">
-    <b>El fundido obliga a <code>slidesPerView: 1</code>.</b> No funciona con <code>'auto'</code>.
-    A cambio, ya no necesitas darle <code>width</code> a <code>.slider-item</code>: Swiper le
-    asigna el 100% del contenedor. Si prefieres que la tarjeta saliente se deslice hacia la
-    izquierda descubriendo la siguiente, el archivo trae comentada la variante con
-    <code>effect: 'creative'</code>.
+    <b>El z-index se gestiona a mano.</b> Swiper siempre pone arriba al slide activo —el que
+    entra— y lo asigna al arrancar la transición, así que el saliente quedaría tapado desde el
+    primer frame y el cambio se vería como un corte seco. El script sube el <code>z-index</code>
+    del saliente en <code>slideNextTransitionStart</code> mientras se retira, y lo limpia al
+    terminar.
+  </div>
+
+  <div class="note">
+    <b>Por qué no es un fundido cruzado.</b> <code>effect: 'fade'</code> obliga a
+    <code>slidesPerView: 1</code>, y con un valor numérico Swiper deja de leer el ancho de cada
+    slide y pasa a escribirlo en píxeles copiando el del carrusel. Si el carrusel no tiene ancho
+    propio y lo hereda de su contenido —lo normal en un layout fluido de móvil— se realimenta:
+    Swiper mide, escribe, el contenedor crece, vuelve a medir. En el sitio real reventó hasta el
+    tope de Chromium, 33.554.432 px. <code>'creative'</code> es el único efecto de superposición
+    que respeta <code>'auto'</code>, así que nunca toca los anchos.
   </div>
 
   <footer>
