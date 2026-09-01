@@ -1,6 +1,39 @@
 // add library before code <link rel="stylesheet"
-// href="https://unpkg.com/swiper/swiper-bundle.min.css" /> <script
-// src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+// href="https://renatopuente-ux.github.io/swiper-selfhosted/dist/swiper-bundle.min.css" /> <script
+// src="https://renatopuente-ux.github.io/swiper-selfhosted/dist/swiper-bundle.min.js"></script>
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// EFECTO: los slides se SUPERPONEN en vez de empujarse en bloque.
+//
+// Antes usaba el efecto por defecto ('slide'): toda la tira se desplazaba
+// lateralmente. Ahora las tarjetas ocupan la misma posicion y se cruzan por
+// opacidad, asi que la nueva aparece encima de la anterior.
+//
+// Dos cambios, y solo dos:
+//   1. effect + fadeEffect  → el fundido cruzado.
+//   2. slidesPerView: 1     → OBLIGATORIO. El efecto 'fade' no funciona con
+//      'auto'; necesita saber que hay exactamente un slide por vista. No cambia
+//      nada visualmente porque cada tarjeta ya medía el ancho del contenedor.
+//
+// crossFade:true importa. Sin el, la tarjeta saliente se queda opaca debajo
+// mientras la entrante aparece, y en el cruce se ve un parpadeo.
+//
+// ── ALTERNATIVA: que una se deslice POR ENCIMA de la otra ────────────────────
+// Si prefieres que la tarjeta saliente se retire hacia la izquierda descubriendo
+// la siguiente, como una carta que sale de un mazo, sustituye las dos lineas de
+// 'effect' y 'fadeEffect' por estas:
+//
+//   effect: 'creative',
+//   creativeEffect: {
+//     prev: { translate: ['-100%', 0, 0] },
+//     next: { translate: [0, 0, -1], opacity: 1 },
+//   },
+//
+// Va en ese orden a proposito: Swiper asigna el z-index segun el progreso y el
+// slide activo siempre queda arriba, asi que el que se mueve tiene que ser el
+// saliente. Al reves, el entrante pasaria por debajo y no se leeria la
+// superposicion.
+// ─────────────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
       var slider_wrapper = new Swiper(".slider-wrapper", {
           wrapperClass: "slider-list",
@@ -21,8 +54,13 @@ $(document).ready(function () {
 
       },
   speed: 700,
-  slidesPerView: 'auto',
+  slidesPerView: 1,
   loop: true,
+
+  effect: 'fade',
+  fadeEffect: {
+    crossFade: true,
+  },
 
         on: {
           init: function () {
