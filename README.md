@@ -72,57 +72,71 @@ Estructura mínima:
 ## Configuración
 
 Bucle infinito, autoplay cada 3 s que **no se detiene al interactuar**, transición de 700 ms,
-`slidesPerView: 1` y paginación de bullets clicables.
+`slidesPerView: 'auto'` y paginación de bullets clicables.
+
+**`slidesPerView: 'auto'` significa que cada slide necesita su propio ancho por CSS.** Sin un
+`width` en `.slider-item`, los slides colapsan y el carrusel no se ve.
 
 ### Efecto: las tarjetas se superponen
 
-Desde el 1 de septiembre de 2026 el carrusel usa **fundido cruzado** (`effect: 'fade'` con
-`crossFade: true`) en vez del desplazamiento lateral por defecto. Las tarjetas ocupan la misma
-posición y se cruzan por opacidad: la nueva aparece encima de la anterior en lugar de empujarla.
-
-Dos consecuencias prácticas:
-
-- **`slidesPerView` pasó de `'auto'` a `1`.** El efecto de fundido no funciona con `'auto'`; exige
-  saber que hay exactamente un slide por vista. Visualmente no cambia nada si tus tarjetas ya
-  ocupaban el ancho del contenedor, que es el caso.
-- **Ya no necesitas darle `width` a `.slider-item`.** Con `slidesPerView: 1`, Swiper le asigna el
-  100% del contenedor. Antes, con `'auto'`, era obligatorio.
-
-`crossFade: true` no es opcional: sin él la tarjeta saliente se queda opaca debajo mientras entra
-la nueva, y en el cruce se ve un parpadeo.
-
-#### El script fuerza `position: relative` en `.slider-wrapper`
-
-Para apilar los slides, el fundido le resta a cada uno su `offsetLeft`. Y `offsetLeft` se mide
-contra el `offsetParent`, no contra el carrusel. Si `.slider-wrapper` queda en `position: static`
-—como pasa por defecto en una Collection List de Webflow— el `offsetParent` acaba siendo el
-`<body>`, y cada slide se desplaza a la izquierda tantos píxeles como diste del borde de la
-página. Con el `overflow: hidden` del carrusel encima, la tarjeta se recorta entera y el slider
-queda en blanco.
-
-Por eso el script pone `position: relative` en el carrusel antes de instanciar Swiper, y solo si
-estaba en `static`. Así el `offsetParent` vuelve a ser el propio carrusel, el offset es 0 y las
-tarjetas se apilan donde deben. No mueve los controles: en el markup de Weblocks las flechas viven
-en su propio `.slider-navigation-wrapper` y son `static`, así que el cambio no las alcanza.
-
-### Alternativa: que una se deslice por encima de la otra
-
-Si prefieres que la tarjeta saliente se retire hacia la izquierda descubriendo la siguiente —como
-una carta que sale de un mazo— sustituye `effect` y `fadeEffect` por:
+Desde el 1 de septiembre de 2026 el carrusel usa `effect: 'creative'` en vez del desplazamiento
+lateral por defecto. Todas las tarjetas ocupan la misma posición y la que sale se retira hacia la
+izquierda **por encima**, descubriendo la que ya estaba esperando debajo. Como una carta que se
+saca de un mazo. La tira ya no se desplaza en bloque.
 
 ```js
 effect: 'creative',
 creativeEffect: {
+  perspective: false,
   prev: { translate: ['-100%', 0, 0] },
-  next: { translate: [0, 0, -1], opacity: 1 },
+  next: { translate: [0, 0, 0] },
 },
 ```
 
-**El orden importa y no es intercambiable.** Swiper asigna el `z-index` según el progreso del
-slide, y el activo siempre queda arriba. Por eso el que se mueve tiene que ser el saliente: si
-haces entrar al nuevo desde la derecha, pasa *por debajo* del anterior y la superposición no se
-lee. Medido: con esta configuración el saliente conserva `z-index: 3` mientras se desplaza, y el
-entrante espera quieto debajo.
+**El script gestiona el `z-index` a mano, y no es opcional.** Swiper siempre pone arriba al slide
+*activo*, y lo asigna al arrancar la transición con los valores finales — el `z-index` no se
+anima. Es decir: el entrante queda encima desde el primer frame, tapa por completo al saliente que
+se retira por debajo, y lo que se ve es un corte seco en vez de una superposición. Por eso, al
+avanzar, el script sube el `z-index` del saliente en `slideNextTransitionStart` y lo limpia en
+`slideChangeTransitionEnd`. Al retroceder no hace falta: el que se mueve es el entrante, que ya
+viene arriba de serie.
+
+`perspective: false` a propósito. Con `true`, Swiper añade la clase `swiper-3d` al carrusel, pero
+la regla que la acompaña (`.swiper-3d .swiper-wrapper { transform-style: preserve-3d }`) apunta a
+`.swiper-wrapper`, y aquí el contenedor se llama `.slider-list`. Nunca matchea, así que la
+perspectiva quedaría a medias y cualquier rotación se vería aplastada.
+
+### Por qué no es un fundido cruzado
+
+`effect: 'fade'` se ve mejor, pero **rompe el layout en móvil**. Swiper fuerza `slidesPerView: 1`
+cuando el efecto es fade, y con un valor numérico `updateSlides` deja de *leer* el ancho de cada
+slide y pasa a *escribirlo* en píxeles, copiando el del carrusel.
+
+En escritorio no se nota, porque la columna del hero mide 680 px fijos. En móvil el carrusel no
+tiene ancho propio: lo hereda de su contenido. Entonces se realimenta — Swiper mide, escribe, el
+contenedor crece, el `ResizeObserver` dispara, Swiper vuelve a medir más grande. Medido en el
+sitio real a 390 px: scroll horizontal de **33 554 432 px**, el tope de layout de Chromium, y el
+hero en blanco.
+
+`creative` es el único efecto de superposición que respeta `slidesPerView: 'auto'`: no escribe
+anchos, no hay realimentación, y el apilado lo resuelve el `z-index` que el propio efecto asigna.
+Verificado a 390 y a 1440 px: desborde 0.
+
+### La regla de CSS que el script tiene que inyectar
+
+Swiper trae en su hoja `.swiper-creative .swiper-slide { transition-property: transform, opacity,
+height }`, pero apunta a `.swiper-slide` y aquí el slide se llama `.slider-item`. No matchea.
+
+Sin esa regla los slides se quedan en `transition-property: all`, y como `setTransition` les
+escribe `transition-duration: 700ms` en línea, **todo** se anima. Cuando el modo bucle reordena el
+DOM y cambian los offsets, ese salto se anima como un deslizamiento lateral: exactamente lo que se
+quería quitar. Por eso el script inyecta `.slider-item { transition-property: transform, opacity }`
+en su callback `init`, junto a los estilos que ya inyectaba.
+
+Es el mismo problema en el resto de la hoja de Swiper: el script renombra `.swiper` → `.slider-wrapper`,
+`.swiper-wrapper` → `.slider-list` y `.swiper-slide` → `.slider-item`, así que **ninguna regla de
+Swiper que apunte a esas tres clases se aplica**. Las que usan clases de estado
+(`.swiper-slide-active`, `.swiper-pagination-bullet`) sí, porque esas no se renombran.
 
 ## Observaciones
 
