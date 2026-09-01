@@ -42,6 +42,22 @@
 // llama .slider-list, asi que nunca matchea. La perspectiva quedaria a medias.
 // ─────────────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
+
+      // OBLIGATORIO para cualquier efecto de superposicion. Swiper mide el
+      // offset de cada slide contra su offsetParent, no contra el carrusel.
+      // Si .slider-wrapper esta en position:static (lo normal en una
+      // Collection List de Webflow), el offsetParent acaba siendo el <body> y
+      // todos los offsets llegan corridos por la distancia del carrusel al
+      // borde de la pagina. El calculo de progreso queda desfasado un slide
+      // entero, el efecto aplica el translate de 'prev' a todos, y el activo
+      // se renderiza fuera del overflow:hidden: hero en blanco. Medido en el
+      // sitio: transform -720px en el slide activo, con el carrusel a 720px
+      // del borde. Con position:relative el offsetParent es el carrusel y
+      // todo vuelve a 0. Solo se toca si estaba en static.
+      document.querySelectorAll('.slider-wrapper').forEach(function (el) {
+        if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      });
+
       var slider_wrapper = new Swiper(".slider-wrapper", {
           wrapperClass: "slider-list",
       slideClass: "slider-item",
