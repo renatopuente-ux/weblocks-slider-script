@@ -72,10 +72,43 @@ Estructura mínima:
 ## Configuración
 
 Bucle infinito, autoplay cada 3 s que **no se detiene al interactuar**, transición de 700 ms,
-`slidesPerView: 'auto'` y paginación de bullets clicables.
+`slidesPerView: 1` y paginación de bullets clicables.
 
-**`slidesPerView: 'auto'` significa que cada slide necesita su propio ancho por CSS.** Sin un
-`width` en `.slider-item`, los slides colapsan y el carrusel no se ve.
+### Efecto: las tarjetas se superponen
+
+Desde el 1 de septiembre de 2026 el carrusel usa **fundido cruzado** (`effect: 'fade'` con
+`crossFade: true`) en vez del desplazamiento lateral por defecto. Las tarjetas ocupan la misma
+posición y se cruzan por opacidad: la nueva aparece encima de la anterior en lugar de empujarla.
+
+Dos consecuencias prácticas:
+
+- **`slidesPerView` pasó de `'auto'` a `1`.** El efecto de fundido no funciona con `'auto'`; exige
+  saber que hay exactamente un slide por vista. Visualmente no cambia nada si tus tarjetas ya
+  ocupaban el ancho del contenedor, que es el caso.
+- **Ya no necesitas darle `width` a `.slider-item`.** Con `slidesPerView: 1`, Swiper le asigna el
+  100% del contenedor. Antes, con `'auto'`, era obligatorio.
+
+`crossFade: true` no es opcional: sin él la tarjeta saliente se queda opaca debajo mientras entra
+la nueva, y en el cruce se ve un parpadeo.
+
+### Alternativa: que una se deslice por encima de la otra
+
+Si prefieres que la tarjeta saliente se retire hacia la izquierda descubriendo la siguiente —como
+una carta que sale de un mazo— sustituye `effect` y `fadeEffect` por:
+
+```js
+effect: 'creative',
+creativeEffect: {
+  prev: { translate: ['-100%', 0, 0] },
+  next: { translate: [0, 0, -1], opacity: 1 },
+},
+```
+
+**El orden importa y no es intercambiable.** Swiper asigna el `z-index` según el progreso del
+slide, y el activo siempre queda arriba. Por eso el que se mueve tiene que ser el saliente: si
+haces entrar al nuevo desde la derecha, pasa *por debajo* del anterior y la superposición no se
+lee. Medido: con esta configuración el saliente conserva `z-index: 3` mientras se desplaza, y el
+entrante espera quieto debajo.
 
 ## Observaciones
 
