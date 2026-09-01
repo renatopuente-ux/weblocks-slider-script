@@ -48,10 +48,10 @@ pre .c{color:#8FA3D8}
    ═══════════════════════════════════════════════════════════════════ */
 .slider-wrapper{position:relative;overflow:hidden;border-radius:12px}
 .slider-list{display:flex}
-/* slidesPerView:'auto' obliga a que cada slide traiga su propio ancho. */
-.slider-item{position:relative;flex-shrink:0;width:340px;margin-right:16px;
-  height:260px;border-radius:12px;overflow:hidden}
-@media (max-width:560px){ .slider-item{width:82%} }
+/* Con el efecto de fundido y slidesPerView:1, Swiper fija el ancho del slide
+   al 100% del contenedor. Ya no hace falta darle uno propio por CSS, como sí
+   exigía el 'auto' de la versión anterior. */
+.slider-item{position:relative;flex-shrink:0;height:300px;border-radius:12px;overflow:hidden}
 
 .slide-image{position:absolute;inset:0;background-size:cover;background-position:center}
 .i1{background-image:linear-gradient(135deg,#151F47,#3C76F1)}
@@ -117,7 +117,7 @@ a{color:#2F5FCC}
         </div>
         <div class="slider-item">
           <div class="slide-image i4"></div>
-          <div class="slide-content"><b>Cuatro</b><span>Ancho fijo por slidesPerView auto</span></div>
+          <div class="slide-content"><b>Cuatro</b><span>Las tarjetas se cruzan por opacidad</span></div>
         </div>
         <div class="slider-item">
           <div class="slide-image i5"></div>
@@ -154,7 +154,21 @@ a{color:#2F5FCC}
     <code>.slider-wrapper</code> como raíz, <code>.slider-list</code> como contenedor y
     <code>.slider-item</code> como slide, más <code>.next-slide</code>, <code>.prev-slide</code>
     y <code>.pagination</code>. Si tu markup no coincide exactamente, no arranca.
-    Y como usa <code>slidesPerView: 'auto'</code>, cada slide necesita su propio ancho por CSS.
+  </div>
+
+  <h2>Las tarjetas se superponen, no se empujan</h2>
+  <p>
+    El carrusel usa <code>effect: 'fade'</code> con <code>crossFade: true</code>: las tarjetas
+    ocupan la misma posición y se cruzan por opacidad, así que la nueva aparece encima de la
+    anterior en lugar de arrastrar toda la tira hacia un lado.
+  </p>
+
+  <div class="note">
+    <b>El fundido obliga a <code>slidesPerView: 1</code>.</b> No funciona con <code>'auto'</code>.
+    A cambio, ya no necesitas darle <code>width</code> a <code>.slider-item</code>: Swiper le
+    asigna el 100% del contenedor. Si prefieres que la tarjeta saliente se deslice hacia la
+    izquierda descubriendo la siguiente, el archivo trae comentada la variante con
+    <code>effect: 'creative'</code>.
   </div>
 
   <footer>
