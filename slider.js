@@ -35,6 +35,19 @@
 // superposicion.
 // ─────────────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
+
+      // El fundido apila los slides restandoles su propio offsetLeft. Y
+      // offsetLeft se mide contra el offsetParent, no contra el carrusel: si
+      // .slider-wrapper es 'static', el offsetParent acaba siendo el <body> y
+      // cada slide se desplaza tantos pixeles a la izquierda como diste del
+      // borde de la pagina. Con overflow:hidden encima, la tarjeta desaparece.
+      // Con position:relative el carrusel pasa a ser el offsetParent, el
+      // offset vuelve a 0 y las tarjetas se apilan donde deben.
+      // Solo se toca si estaba en 'static', para no pisar ningun layout.
+      document.querySelectorAll('.slider-wrapper').forEach(function (el) {
+        if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      });
+
       var slider_wrapper = new Swiper(".slider-wrapper", {
           wrapperClass: "slider-list",
       slideClass: "slider-item",
