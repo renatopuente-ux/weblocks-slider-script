@@ -122,6 +122,20 @@ hero en blanco.
 anchos, no hay realimentación, y el apilado lo resuelve el `z-index` que el propio efecto asigna.
 Verificado a 390 y a 1440 px: desborde 0.
 
+### El script fuerza `position: relative` en `.slider-wrapper`
+
+Swiper mide el offset de cada slide contra su `offsetParent`, no contra el carrusel. Si
+`.slider-wrapper` queda en `position: static` —lo normal en una Collection List de Webflow— el
+`offsetParent` acaba siendo el `<body>`, todos los offsets llegan corridos por la distancia del
+carrusel al borde de la página y el cálculo de progreso queda desfasado un slide entero: el
+efecto aplica el translate de `prev` a todos los slides y el activo se renderiza fuera del
+`overflow: hidden`. Resultado medido en el sitio: `transform: -720px` en el slide activo con el
+carrusel a 720 px del borde, hero en blanco.
+
+Por eso el script pone `position: relative` en el carrusel antes de instanciar Swiper, y solo si
+estaba en `static`. No afecta a los controles: en el markup de Weblocks las flechas viven en su
+propio contenedor.
+
 ### La regla de CSS que el script tiene que inyectar
 
 Swiper trae en su hoja `.swiper-creative .swiper-slide { transition-property: transform, opacity,
