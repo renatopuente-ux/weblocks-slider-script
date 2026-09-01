@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slider · demo del script hospedado</title>
+
+<!-- Swiper, desde el mirror auto-hospedado (no desde unpkg). -->
+<link rel="stylesheet" href="https://renatopuente-ux.github.io/swiper-selfhosted/dist/swiper-bundle.min.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1e293b; --ink-weak:#475569; --navy:#151F47; --indigo:#4C64D9;
+  --bg:#f5f6fa; --card:#fff; --line:rgba(0,17,102,.10);
+  --ok-bg:#E8F5E9; --ok-ink:#1B5E20;
+  --warn-bg:#FFF4E5; --warn-ink:#663C00; --warn-bd:#FFCC80;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Nunito,-apple-system,Segoe UI,sans-serif;color:var(--ink);
+  background:var(--bg);line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px 80px}
+header{padding:52px 0 26px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--indigo);margin-bottom:10px}
+h1{margin:0 0 8px;font-size:32px;line-height:1.2;font-weight:800;color:var(--navy);letter-spacing:-.02em}
+.lead{margin:0;color:var(--ink-weak);max-width:680px}
+h2{font-size:19px;font-weight:800;color:var(--navy);margin:42px 0 6px}
+h2 + p{margin:0 0 18px;color:var(--ink-weak);font-size:14.5px}
+code{background:#EEF1F7;border:1px solid var(--line);border-radius:4px;padding:1px 6px;
+  font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;color:#2F5FCC}
+pre{background:var(--navy);color:#E6ECFF;padding:18px 20px;border-radius:12px;overflow-x:auto;
+  font-size:13px;line-height:1.65;margin:0;font-family:ui-monospace,Menlo,Consolas,monospace}
+pre .c{color:#8FA3D8}
+
+/* ── Marco de la demo ── */
+.demo{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;
+  box-shadow:0 1px 2px rgba(15,23,42,.05)}
+
+/* ══ Las clases que ESPERA el script ══════════════════════════════════
+   El script usa nombres propios en vez de los de Swiper:
+     .slider-wrapper  → la raíz          (en Swiper sería .swiper)
+     .slider-list     → wrapperClass     (en Swiper sería .swiper-wrapper)
+     .slider-item     → slideClass       (en Swiper sería .swiper-slide)
+   Si tu markup no usa exactamente estos nombres, el slider no arranca.
+   ═══════════════════════════════════════════════════════════════════ */
+.slider-wrapper{position:relative;overflow:hidden;border-radius:12px}
+.slider-list{display:flex}
+/* slidesPerView:'auto' obliga a que cada slide traiga su propio ancho. */
+.slider-item{position:relative;flex-shrink:0;width:340px;margin-right:16px;
+  height:260px;border-radius:12px;overflow:hidden}
+@media (max-width:560px){ .slider-item{width:82%} }
+
+.slide-image{position:absolute;inset:0;background-size:cover;background-position:center}
+.i1{background-image:linear-gradient(135deg,#151F47,#3C76F1)}
+.i2{background-image:linear-gradient(135deg,#3C76F1,#4C64D9)}
+.i3{background-image:linear-gradient(135deg,#DE5E2D,#F2A65A)}
+.i4{background-image:linear-gradient(135deg,#0E7C66,#4CAF50)}
+.i5{background-image:linear-gradient(135deg,#5F2120,#B4453C)}
+.slide-content{position:absolute;left:0;right:0;bottom:0;padding:18px 20px;color:#fff;
+  background:linear-gradient(transparent,rgba(10,15,35,.72));z-index:1}
+.slide-content b{display:block;font-size:19px;font-weight:800}
+.slide-content span{font-size:13px;opacity:.85}
+
+/* Controles. El script los busca por .next-slide / .prev-slide / .pagination */
+.prev-slide,.next-slide{position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+  width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.92);
+  color:var(--navy);display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 3px 10px rgba(15,23,42,.20)}
+.prev-slide{left:12px} .next-slide{right:12px}
+.prev-slide:hover,.next-slide:hover{background:#fff}
+.pagination{position:absolute;left:0;right:0;bottom:12px;z-index:3;text-align:center}
+
+.status{margin-top:18px;padding:12px 16px;border-radius:10px;font-size:13.5px;font-weight:700;
+  display:flex;align-items:center;gap:9px}
+.status.ok{background:var(--ok-bg);color:var(--ok-ink);border-left:4px solid #4CAF50}
+.status.fail{background:#FDEDED;color:#5F2120;border-left:4px solid #C73A3A}
+.note{border-left:4px solid #FFBB38;background:var(--warn-bg);color:var(--warn-ink);
+  border-radius:0 10px 10px 0;padding:12px 16px;font-size:13.5px;line-height:1.65;margin:18px 0}
+footer{margin-top:52px;padding-top:22px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--ink-weak)}
+a{color:#2F5FCC}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Script hospedado</div>
+    <h1>Slider Swiper</h1>
+    <p class="lead">
+      Esta página carga <code>slider.js</code> desde este mismo repositorio y Swiper desde el mirror
+      auto-hospedado. Si el carrusel se mueve solo, avanza con las flechas y reacciona al pasar el
+      cursor por encima, el script funciona.
+    </p>
+  </header>
+
+  <h2>Comprobación</h2>
+  <p>Autoplay cada 3 s, bucle activo, y al pasar el cursor la imagen escala y el texto baja de opacidad.</p>
+
+  <div class="demo">
+    <div class="slider-wrapper">
+      <div class="slider-list">
+        <div class="slider-item">
+          <div class="slide-image i1"></div>
+          <div class="slide-content"><b>Uno</b><span>Pasa el cursor por encima</span></div>
+        </div>
+        <div class="slider-item">
+          <div class="slide-image i2"></div>
+          <div class="slide-content"><b>Dos</b><span>La imagen escala a 1.1</span></div>
+        </div>
+        <div class="slider-item">
+          <div class="slide-image i3"></div>
+          <div class="slide-content"><b>Tres</b><span>El texto baja a 0.8 de opacidad</span></div>
+        </div>
+        <div class="slider-item">
+          <div class="slide-image i4"></div>
+          <div class="slide-content"><b>Cuatro</b><span>Ancho fijo por slidesPerView auto</span></div>
+        </div>
+        <div class="slider-item">
+          <div class="slide-image i5"></div>
+          <div class="slide-content"><b>Cinco</b><span>Bucle infinito</span></div>
+        </div>
+      </div>
+
+      <button class="prev-slide" aria-label="Anterior">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="next-slide" aria-label="Siguiente">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+      <div class="pagination"></div>
+    </div>
+
+    <div class="status" id="status">Comprobando…</div>
+  </div>
+
+  <h2>Cómo usarlo</h2>
+  <p>El orden importa: jQuery y Swiper tienen que estar antes que el script.</p>
+<pre><span class="c">&lt;!-- 1 · Swiper (CSS + JS) --&gt;</span>
+&lt;link rel="stylesheet" href="https://renatopuente-ux.github.io/swiper-selfhosted/dist/swiper-bundle.min.css"&gt;
+&lt;script src="https://renatopuente-ux.github.io/swiper-selfhosted/dist/swiper-bundle.min.js"&gt;&lt;/script&gt;
+
+<span class="c">&lt;!-- 2 · jQuery: el script lo necesita --&gt;</span>
+&lt;script src="https://code.jquery.com/jquery-3.7.1.min.js"&gt;&lt;/script&gt;
+
+<span class="c">&lt;!-- 3 · Este script, al final --&gt;</span>
+&lt;script src="https://renatopuente-ux.github.io/weblocks-slider-script/slider.js"&gt;&lt;/script&gt;</pre>
+
+  <div class="note">
+    <b>Ojo con los nombres de clase.</b> El script no usa los de Swiper: espera
+    <code>.slider-wrapper</code> como raíz, <code>.slider-list</code> como contenedor y
+    <code>.slider-item</code> como slide, más <code>.next-slide</code>, <code>.prev-slide</code>
+    y <code>.pagination</code>. Si tu markup no coincide exactamente, no arranca.
+    Y como usa <code>slidesPerView: 'auto'</code>, cada slide necesita su propio ancho por CSS.
+  </div>
+
+  <footer>
+    Carrusel con <a href="https://swiperjs.com">Swiper</a> (MIT) ·
+    Swiper servido desde <a href="https://renatopuente-ux.github.io/swiper-selfhosted/">el mirror auto-hospedado</a>.
+  </footer>
+
+</div>
+
+<!-- El orden real de carga, igual que el documentado arriba. -->
+<script src="https://renatopuente-ux.github.io/swiper-selfhosted/dist/swiper-bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="./slider.js"></script>
+
+<script>
+// Comprobación: no basta con que el script cargue, hay que ver que el slider quedó vivo.
+window.addEventListener('load', function () {
+  var box = document.getElementById('status');
+  var root = document.querySelector('.slider-wrapper');
+  var sw = root && root.swiper;
+
+  if (typeof window.jQuery !== 'function') {
+    box.className = 'status fail'; box.textContent = 'Falta jQuery.'; return;
+  }
+  if (typeof window.Swiper !== 'function') {
+    box.className = 'status fail'; box.textContent = 'Falta Swiper.'; return;
+  }
+  if (!sw) {
+    box.className = 'status fail';
+    box.textContent = 'El script cargó pero el slider no se inicializó. Revisa los nombres de clase.';
+    return;
+  }
+  var falta = ['navigation','pagination','autoplay'].filter(function (m) { return !sw[m]; });
+  if (falta.length) {
+    box.className = 'status fail';
+    box.textContent = 'Slider activo, pero faltan módulos: ' + falta.join(', ');
+    return;
+  }
+  box.className = 'status ok';
+  box.textContent = 'Slider inicializado · ' + sw.slides.length + ' slides · bucle '
+    + (sw.params.loop ? 'activo' : 'inactivo') + ' · autoplay cada '
+    + (sw.params.autoplay.delay / 1000) + ' s.';
+});
+</script>
+</body>
+</html>
