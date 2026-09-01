@@ -91,6 +91,20 @@ Dos consecuencias prácticas:
 `crossFade: true` no es opcional: sin él la tarjeta saliente se queda opaca debajo mientras entra
 la nueva, y en el cruce se ve un parpadeo.
 
+#### El script fuerza `position: relative` en `.slider-wrapper`
+
+Para apilar los slides, el fundido le resta a cada uno su `offsetLeft`. Y `offsetLeft` se mide
+contra el `offsetParent`, no contra el carrusel. Si `.slider-wrapper` queda en `position: static`
+—como pasa por defecto en una Collection List de Webflow— el `offsetParent` acaba siendo el
+`<body>`, y cada slide se desplaza a la izquierda tantos píxeles como diste del borde de la
+página. Con el `overflow: hidden` del carrusel encima, la tarjeta se recorta entera y el slider
+queda en blanco.
+
+Por eso el script pone `position: relative` en el carrusel antes de instanciar Swiper, y solo si
+estaba en `static`. Así el `offsetParent` vuelve a ser el propio carrusel, el offset es 0 y las
+tarjetas se apilan donde deben. No mueve los controles: en el markup de Weblocks las flechas viven
+en su propio `.slider-navigation-wrapper` y son `static`, así que el cambio no las alcanza.
+
 ### Alternativa: que una se deslice por encima de la otra
 
 Si prefieres que la tarjeta saliente se retire hacia la izquierda descubriendo la siguiente —como
