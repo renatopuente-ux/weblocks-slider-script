@@ -72,7 +72,8 @@ $(document).ready(function () {
 
       },
   autoplay: {
-          delay: 3000,
+          // 4000 ms (antes 3000): cada tarjeta queda 1 s mas, a pedido del usuario (2026-10-15).
+          delay: 4000,
     disableOnInteraction: false,
 
       },
